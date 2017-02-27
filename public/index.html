@@ -139,7 +139,11 @@
               createDate : new Date().getTime()
             });
           }
+        }
 
+        function initMemo() {
+          $(".textarea").val('');
+          selectedKey = null;
         }
 
         $(function() {
