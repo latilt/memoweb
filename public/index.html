@@ -40,7 +40,7 @@
     </div>
 
     <div class="fixed-action-btn" style="bottom: 45px; right: 24px;">
-        <a class="btn-floating btn-large waves-effect waves-light red"><i class="material-icons">add</i></a>
+        <a class="btn-floating btn-large waves-effect waves-light red" onclick="initMemo();"><i class="material-icons">add</i></a>
     </div>
 
     <div class="preloader-wrapper big active" style="position:absolute; z-index:1000; left:50%; top:50%; display:none;">
@@ -74,7 +74,7 @@
         firebase.initializeApp(config);
         var auth = firebase.auth();
         var database = firebase.database();
-        var userInfo;
+        var userInfo, selectedKey;
         var authProvider = new firebase.auth.GoogleAuthProvider();
 
         auth.onAuthStateChanged(function(user) {
@@ -95,11 +95,10 @@
         }
 
         function on_child_added(data) {
-
           var key = data.key;
           var memoData = data.val();
           var txt = memoData.txt;
-          var title = memoData.title;
+          var title = txt.substr(0, txt.indexOf("\n"));
           var firstTxt = txt.substr(0, 1);
 
           var html =
@@ -114,6 +113,7 @@
         }
 
         function fn_get_data_one(key) {
+          selectedKey = key;
           var memoRef = database.ref('memos/' + userInfo.uid + '/' + key)
             .once('value').then(function(snapshot) {
               $(".textarea").val(snapshot.val().txt);
@@ -126,10 +126,20 @@
           if(txt.length === 0) {
             return;
           }
-          memoRef.push({
-            txt : txt,
-            createDate : new Date().getTime()
-          });
+          if(selectedKey) {
+            memoRef = database.ref('memos/' + userInfo.uid + '/' + selectedKey);
+            memoRef.update({
+              txt : txt,
+              createDate : new Date().getTime(),
+              updateDate : new Date().getTime()
+            });
+          } else {
+            memoRef.push({
+              txt : txt,
+              createDate : new Date().getTime()
+            });
+          }
+
         }
 
         $(function() {
