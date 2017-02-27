@@ -92,6 +92,14 @@
           console.log(userInfo.uid);
           var memoRef = database.ref('memos/' + userInfo.uid);
           memoRef.on('child_added', on_child_added);
+          memoRef.on('child_changed', function(data) {
+            var key = data.key;
+            var txt = data.val().txt;
+            var title = txt.substr(0, txt.indexOf("\n"));
+
+            $("#" + key + " > .title").text(title);
+            $("#" + key + " > .txt").text(txt);
+          });
         }
 
         function on_child_added(data) {
@@ -107,6 +115,7 @@
              "<span class=\"title\">" + title + "</span>" +
              "<p class='txt'>" + txt + "<br>" +
              "</p>" +
+             "<a href=\"#!\" onclick=\"fn_delete_data('" + key + "');\" class=\"secondary-content\"><i class=\"material-icons\">grade</i></a>" +
              "</li>";
 
           $(".collection").append(html);
@@ -118,6 +127,16 @@
             .once('value').then(function(snapshot) {
               $(".textarea").val(snapshot.val().txt);
             })
+        }
+
+        function fn_delete_data(key) {
+          if(!confirm("삭제하시겠습니까?")) {
+            return;
+          }
+          var memoRef = database.ref('memos/' + userInfo.uid + '/' + key);
+          memoRef.remove();
+          $("#" + key).remove();
+          initMemo();
         }
 
         function save_data() {
